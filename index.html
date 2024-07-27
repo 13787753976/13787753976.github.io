@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html onclick="initPage();">
+<html onclick="switchGlobeStatus();">
 	<head>
 		<meta charset="utf-8">
 		<title>贝茨训练法</title>
@@ -32,14 +32,14 @@
 				border-style: solid;
 				border-color: #393232; /* 网格颜色 */
 			}
-			#div {
+			#globe {
 				background-color: #ed8d8d; /* 球颜色 */
 				border-radius: 50%;
 				z-index: 999;
 			}
 		</style>
 	</head>
-	<body onclick="initPage();">
+	<body>
 		
 		<!-- 
 			无偿分享 简单易用 贝茨训练法 调节睫状肌 近视恢复训练
@@ -59,8 +59,7 @@
                 摘掉眼镜看！！！
                 放着音乐看，尽享美好生活
             3. 观看距离备注：
-                用自己大拇指的第一个关节在眼前20厘米处比一下，圆球最大时和大拇指的第一个关节差不多大就可以了。
-                或者说圆圈最大时自己刚好能够看清即可。
+                圆圈最大时自己刚好能够看清即可。
             4. 哔哩哔哩观看备注：
                 需要开启循环播放，不然一下就没了
                 电脑端：右下角设置-洗脑循环（开启）
@@ -83,47 +82,73 @@
 				
 			-->
 		
-		<div id="div" style="width: 1px;height: 1px;transform:scale(0);-ms-transform:scale(0);-webkit-transform:scale(0);" onclick="window.location.href='https://www.bilibili.com/video/BV1ni4y1f7UG';"></div>
+		<div id="globe" style="width: 1px;height: 1px;transform:scale(0);-ms-transform:scale(0);-webkit-transform:scale(0);" onclick="window.location.href='https://www.bilibili.com/video/BV1ni4y1f7UG';"></div>
+		
 	</body>
 	<script>
-		var SCREEN_WIDTH = null; // 屏幕宽度
-		var SCREEN_HEIGHT = null; // 屏幕高度
-		var IMG_MAX_WIDTH = null; // 球最大宽度 = 屏幕宽度和屏幕高度小的一方
-		var WIDTH_RATIO = null; // 宽度比值
-		var HEIGHT_RATIO = null; // 高度比值
-		var IMG_OBJ = null; // 图片对象
-		var TOTAL_TIME = null; // 总时长5秒
-		var CHANGE_TIME_NUM = null; // 每次修改间隔时间
-		var IMG_CHANGE_WIDTH = null; // 图片每次变化的宽度 = 图片最大宽度 ÷ (总时长 ÷ 每次修改间隔时间)
-		var BODY_HTML = null;
-		var IMG_TO_MAX_CHANGE_WIDTH_ARRY = null; // 图片变大时，每次变化的宽度数据数组
-		var INTERVAL_ID = null;
-		window.setTimeout(initPage, 10);
+		/* 屏幕 begin */
+		var WINDOW_WIDTH = null; // 屏幕宽度
+		var WINDOW_HEIGHT = null; // 屏幕高度
+		var BODY_INIT_HTML = null; // 初始<body>标签html内容
+		/* 屏幕 end */
 		
+		/* 空间视觉 begin */
+		var WINDOW_WIDTH_RATIO = null; // 屏幕宽度比值
+		var WINDOW_HEIGHT_RATIO = null; // 屏幕高度比值
+		var GRID_WIDTH_INIT = 8; // 初始化网格宽度
+		var GRID_GAP_WIDTH_INIT = 4; // 初始化网格间隙宽度
+		var GRID_GAP_ADD_WIDTH_INIT = 1; // 初始化网格间隙增加宽度
+		var GRID_BORDER_WIDTH_INIT = 2; // 初始化网格边框宽度
+		/* 空间视觉 end */
+		
+		/* 球体 begin */
+		var GLOBE_MAX_WIDTH = null; // 球体最大宽度 = 屏幕宽度和屏幕高度小的一方
+		var GLOBE_OBJ = null; // 球体对象
+		var GLOBE_CHANGE_TOTAL_TIME = null; // 球体变化总时长5秒
+		var GLOBE_CHANGE_TIME_INTERVAL = null; // 每次球体变化的时间间隔
+		var GLOBE_CHANGE_WIDTH = null; // 球体每次变化的宽度 = 球体最大宽度 ÷ (总时长 ÷ 每次修改间隔时间)
+		var GLOBE_TO_MAX_CHANGE_WIDTH_ARRY = null; // 球体变大时，每次变化的宽度数据数组
+		var INTERVAL_ID = null; // 循环定时器ID
+		var IS_STOP = false; // 是否暂停
+		/* 球体 end */
+		
+		window.setTimeout(initPage, 10); // 10毫秒后开始初始化
+		
+		/**
+		 * 初始化页面（重置）
+		 */
 		function initPage() {
-			SCREEN_WIDTH = document.body.clientWidth; // 屏幕宽度
-			SCREEN_HEIGHT = document.body.clientHeight; // 屏幕高度
-			IMG_MAX_WIDTH = SCREEN_WIDTH > SCREEN_HEIGHT ? SCREEN_HEIGHT : SCREEN_WIDTH; // 球最大宽度 = 屏幕宽度和屏幕高度小的一方
-			WIDTH_RATIO = SCREEN_WIDTH > SCREEN_HEIGHT ? 1 : SCREEN_WIDTH / SCREEN_HEIGHT; // 宽度比值
-			HEIGHT_RATIO = SCREEN_HEIGHT > SCREEN_WIDTH ? 1 : SCREEN_HEIGHT / SCREEN_WIDTH; // 高度比值
-			var body_obj = document.body;
-			if (!BODY_HTML) {
-				BODY_HTML = body_obj.innerHTML;
+			/* 屏幕 begin */
+			WINDOW_WIDTH = document.body.clientWidth; // 屏幕宽度
+			WINDOW_HEIGHT = document.body.clientHeight; // 屏幕高度
+			/* 屏幕 end */
+			
+			/* 空间视觉 begin */
+			WINDOW_WIDTH_RATIO = WINDOW_WIDTH > WINDOW_HEIGHT ? 1 : WINDOW_WIDTH / WINDOW_HEIGHT; // 宽度比值
+			WINDOW_HEIGHT_RATIO = WINDOW_HEIGHT > WINDOW_WIDTH ? 1 : WINDOW_HEIGHT / WINDOW_WIDTH; // 高度比值
+			/* 空间视觉 end */
+			
+			/* 球体 begin */
+			GLOBE_MAX_WIDTH = WINDOW_WIDTH > WINDOW_HEIGHT ? WINDOW_HEIGHT : WINDOW_WIDTH; /// 球体最大宽度 = 屏幕宽度和屏幕高度小的一方
+			GLOBE_MAX_WIDTH = GLOBE_MAX_WIDTH * 0.40;
+			GLOBE_OBJ = document.getElementById('globe'); // 球体对象
+			GLOBE_OBJ.style.width = GLOBE_MAX_WIDTH+'px'; // 初始化球体宽度
+			GLOBE_OBJ.style.height = GLOBE_MAX_WIDTH+'px'; // 初始化球体高度
+			GLOBE_CHANGE_TOTAL_TIME = 5000; // 球体变化总时长（毫秒）
+			GLOBE_CHANGE_TIME_INTERVAL = 7; // 每次修改间隔时间（毫秒）
+			GLOBE_CHANGE_WIDTH = GLOBE_MAX_WIDTH / (GLOBE_CHANGE_TOTAL_TIME / GLOBE_CHANGE_TIME_INTERVAL); // 球体每次变化的宽度 = 球体最大宽度 ÷ (总时长 ÷ 每次修改间隔时间)
+			GLOBE_TO_MAX_CHANGE_WIDTH_ARRY = null; // 球体变大时，每次变化的宽度数据数组
+			/* 球体 end */
+			
+			// 初始化页面、还原页面
+			if (!BODY_INIT_HTML) {
+				BODY_INIT_HTML = document.body.innerHTML; // 记录初始<body>标签html内容
 			} else {
-				body_obj.innerHTML = BODY_HTML;
+				document.body.innerHTML = BODY_INIT_HTML; // 还原初始<body>标签html内容
 			}
-			IMG_OBJ = document.getElementById('div'); // 图片对象
-			IMG_OBJ.style.width = IMG_MAX_WIDTH+'px';
-			IMG_OBJ.style.height = IMG_MAX_WIDTH+'px';
-			TOTAL_TIME = 5000; // 总时长5秒
-			CHANGE_TIME_NUM = 7; // 每次修改间隔时间
-			IMG_CHANGE_WIDTH = IMG_MAX_WIDTH / (TOTAL_TIME / CHANGE_TIME_NUM); // 图片每次变化的宽度 = 图片最大宽度 ÷ (总时长 ÷ 每次修改间隔时间)
 			
-			IMG_TO_MAX_CHANGE_WIDTH_ARRY = null; // 图片变大时，每次变化的宽度数据数组
-			
-			
+			// 清理循环定时器
 			if (INTERVAL_ID != null) {
-				// 清理循环定时器
 				window.clearInterval(INTERVAL_ID);
 				INTERVAL_ID = null;
 			}
@@ -131,65 +156,81 @@
 			// 初始化空间视觉
 			initSpatialVision();
 			
-			// 初始化图片变大
-			initImgToMaxChangeWidthArry();
+			// 初始化球体变大
+			initImgglobeToMaxChangeWidthArry();
 			
-			// 图片变大
-			toMax();
+			// 球体变大
+			globeToMax();
 			
-			// 页面大小改变自动刷新页面
+			// 页面大小改变自动重置页面
 			window.onresize = function() {
 				initPage();
 			}
+			
+			// 按下回车触发
+			document.onkeydown = function() {    
+				console.log(event);
+				if(event.keyCode == 32) {
+					// 切换球体状态
+					switchGlobeStatus();
+				}
+				return true;  
+			};
 		}
 		
 		/**
-		 * 空间视觉
+		 * 初始化空间视觉
 		 */
 		function initSpatialVision() {
-			var body_obj = document.body;
-			var div_width = 8; // 初始化边框宽度
-			var div_border_width = 4; // 初始化边框宽度
+			var grid_width = GRID_WIDTH_INIT; // 初始网格宽度
+			var grid_gap_width = GRID_GAP_WIDTH_INIT; // 初始网格边距
 			while (true) {
-				var div_obj = document.createElement('div');
-				var this_div_height = div_width * HEIGHT_RATIO; // 本次div高度
-				var this_div_width = div_width * WIDTH_RATIO; // 本次div宽度
-				var this_top_bottom_border_width = 2; // 本次上下边框宽度
-				var this_left_border_width = 2; // 本次左边框宽度
-				var this_right_border_width = 2; // 本次右边框宽度
+				var div_obj = document.createElement('div'); // 创建一个新的<div>标签
+				var this_grid_height = grid_width * WINDOW_HEIGHT_RATIO; // 本次网格高度
+				var this_grid_width = grid_width * WINDOW_WIDTH_RATIO; // 本次网格宽度
+				var this_top_bottom_border_width = GRID_BORDER_WIDTH_INIT; // 本次上下网格边框宽度
+				var this_left_border_width = GRID_BORDER_WIDTH_INIT; // 本次左网格边框宽度
+				var this_right_border_width = GRID_BORDER_WIDTH_INIT; // 本次右网格边框宽度
 				
 				
-				if (this_div_height > SCREEN_HEIGHT) { // 如果网格高度超过屏幕高度
-					//this_div_height = SCREEN_HEIGHT; 
-					this_top_bottom_border_width = (SCREEN_HEIGHT - this_div_height + (this_top_bottom_border_width * 2)) / 2; // 上下边框变窄，减少的宽度是超出的宽度 除以二
+				if (this_grid_height > WINDOW_HEIGHT) { // 如果网格高度超过屏幕高度
+					// (屏幕高度 - 本次网格高度 + (本次上下网格边框宽度 * 2) ) / 2
+					this_top_bottom_border_width = (WINDOW_HEIGHT - this_grid_height + (this_top_bottom_border_width * 2)) / 2; // 上下网格变窄，减少的宽度是超出的宽度 除以二
 				}
-				if (this_div_width > SCREEN_WIDTH) { // 如果网格宽度超过屏幕宽度
-					//this_div_width = SCREEN_WIDTH;
-					this_left_border_width = (SCREEN_WIDTH - this_div_width + (this_left_border_width * 2)) / 2; // 左边框变窄，减少的宽度是超出的宽度 除以二
-					this_right_border_width = this_right_border_width + this_right_border_width - this_left_border_width; // 右边框加宽，增加的宽度是左边框缩小的宽度
+				if (this_grid_width > WINDOW_WIDTH) { // 如果网格宽度超过屏幕宽度
+					// 本次左网格边框宽度 = (屏幕宽度 - 本次网格宽度 + (本次左网格边框宽度 * 2) ) / 2
+					this_left_border_width = (WINDOW_WIDTH - this_grid_width + (this_left_border_width * 2)) / 2; // 左网格变窄，减少的宽度是超出的宽度 除以二
+					
+					// 本次右网格边框宽度 = 本次右网格宽度 + 本次右网格宽度 - 本次左网格边框宽度
+					this_right_border_width = this_right_border_width + this_right_border_width - this_left_border_width; // 右网格加宽，增加的宽度是左网格缩小的宽度
 				}
 				
-				div_obj.style.cssText = 'width: '+ this_div_width +'px;height: '+ this_div_height +'px;border-top-width: '+ this_top_bottom_border_width +'px;border-right-width: '+ this_right_border_width +'px;border-bottom-width: '+ this_top_bottom_border_width +'px;border-left-width: '+ this_left_border_width +'px;';
-				body_obj.appendChild(div_obj);
-				div_width = div_width + div_border_width + 1; // 下一个网格宽度 = 当前网格宽度 + 边框宽度 * 4
-				div_border_width = div_border_width + 1; // 下一个边框宽度 = 当前边框宽度 + 1
-				if (this_div_width > SCREEN_WIDTH && this_div_height > SCREEN_HEIGHT) { // 当前网格宽度与高度都超出屏幕范围
+				if (this_grid_width > WINDOW_WIDTH && this_grid_height > WINDOW_HEIGHT) { // 当前网格宽度与高度都超出屏幕范围，退出
 					break;
 				}
+				
+				// 设置本次网格的宽度、高度、上边距、右边距、下边距、左边距
+				div_obj.style.cssText = 'width: '+ this_grid_width +'px;height: '+ this_grid_height +'px;border-top-width: '+ this_top_bottom_border_width +'px;border-right-width: '+ this_right_border_width +'px;border-bottom-width: '+ this_top_bottom_border_width +'px;border-left-width: '+ this_left_border_width +'px;';
+				
+				// 将该网格加入到<body>标签中
+				document.body.appendChild(div_obj);
+				grid_width = grid_width + grid_gap_width + GRID_GAP_ADD_WIDTH_INIT; // 下一个网格宽度 = 当前网格宽度 + 网格宽度 + 网格间隙增加宽度
+				grid_gap_width = grid_gap_width + GRID_GAP_ADD_WIDTH_INIT; // 下一个网格间隙宽度 = 当前网格宽度 + 网格间隙增加宽度
+				
 			}
 		};
 		
 		/**
-		 * 初始化计算图片变大时，每次变化的宽度
+		 * 初始化计算球体变大时，每次变化的宽度
 		 */
-		function initImgToMaxChangeWidthArry() {
-			// 初始化数组容量
-			IMG_TO_MAX_CHANGE_WIDTH_ARRY = new Array(Math.ceil(TOTAL_TIME / CHANGE_TIME_NUM));
+		function initImgglobeToMaxChangeWidthArry() {
+			// 初始化数组容量 = ( 球体变化总时长 / 每次修改间隔时间 )
+			GLOBE_TO_MAX_CHANGE_WIDTH_ARRY = new Array(Math.ceil(GLOBE_CHANGE_TOTAL_TIME / GLOBE_CHANGE_TIME_INTERVAL));
 			
-			// 当前图片宽度
-			var this_img_width = 1.5;
-			// 当前图片变化的宽度
-			var this_img_change_width = 0;
+			// 当前球体宽度
+			var this_globe_width = 1.5;
+			// 当前球体变化的宽度
+			var this_globe_change_width = 0;
 			// 运行时间
 			var run_time = 0;
 			
@@ -197,94 +238,109 @@
 			var index = 0;
 			while (true) {
 				// 运行时间 = 运行时间 + 每次修改间隔时间
-				run_time = run_time + CHANGE_TIME_NUM;
+				run_time = run_time + GLOBE_CHANGE_TIME_INTERVAL;
 				
-				// 如果运行时间大于总时间，则将剩余时长改为总时间
-				if (run_time > TOTAL_TIME) {
-					run_time = TOTAL_TIME;
-				}
-		
-				// 图片变大时，每次变化的速度由慢到快，这样看的更舒服
-				// 当前图片变化的宽度 = (运行时间 ÷ (总时长 ÷ 2)) × 图片每次变化的宽度;
-				this_img_change_width = run_time / (TOTAL_TIME / 2) * IMG_CHANGE_WIDTH;
+				// 球体变大时，每次变化的速度由慢到快，这样看的更舒服
+				// 当前球体变化的宽度 = (运行时间 ÷ (总时长 ÷ 2)) × 球体每次变化的宽度;
+				this_globe_change_width = run_time / (GLOBE_CHANGE_TOTAL_TIME / 2) * GLOBE_CHANGE_WIDTH;
 				
-				// 当前图片宽度 = 当前图片宽度 + 图片本次变化的宽度
-				this_img_width = this_img_width + this_img_change_width;
+				// 当前球体宽度 = 当前球体宽度 + 球体本次变化的宽度
+				this_globe_width = this_globe_width + this_globe_change_width;
 				
-				// 循环，直到当前图片宽度大于图片最大宽度
-				if (this_img_width > IMG_MAX_WIDTH * 0.40) {
+				// 循环，直到当前球体宽度大于球体最大宽度
+				if (this_globe_width > GLOBE_MAX_WIDTH
+					|| index >= GLOBE_TO_MAX_CHANGE_WIDTH_ARRY.length) {
 					break;
 				}
 				
-				// 将当前图片宽度记录到图片变大时，每次变化的宽度
-				IMG_TO_MAX_CHANGE_WIDTH_ARRY[index++] = this_img_width / IMG_MAX_WIDTH;
+				// 将当前球体宽度记录到球体变大时，每次变化的宽度（每次变化的宽度是使用了CSS的动态缩放功能，所以需要计算出当前球体宽度与最大球体宽度的比值。）
+				GLOBE_TO_MAX_CHANGE_WIDTH_ARRY[index++] = this_globe_width / GLOBE_MAX_WIDTH;
 			}
 		};
 		
 		/**
-		 * 图片变大
+		 * 球体变大
 		 */
-		function toMax() {
+		function globeToMax() {
 			var index = 0;
 			INTERVAL_ID = window.setInterval(function () {
-				// 当前图片宽度大于图片最大宽度时，改为将图片逐渐缩小
-				if (index >= IMG_TO_MAX_CHANGE_WIDTH_ARRY.length) {
-					// 清理循环定时器
-					window.clearInterval(INTERVAL_ID);
-					// 图片变小
-					toMin();
-				} else {
-					if (IMG_TO_MAX_CHANGE_WIDTH_ARRY[index] != null) {
-						// 修改图片宽度
-						IMG_OBJ.style.transform = "scale("+ IMG_TO_MAX_CHANGE_WIDTH_ARRY[index] +")";
+				// 当前没有暂停
+				if (IS_STOP == false) {
+					// 当前球体宽度大于球体最大宽度时，改为将球体逐渐缩小
+					if (index >= GLOBE_TO_MAX_CHANGE_WIDTH_ARRY.length) {
+						// 清理循环定时器
+						window.clearInterval(INTERVAL_ID);
+						// 球体变小
+						globeToMin();
 					} else {
-						do {
-							index++;
-							// 当前图片宽度大于图片最大宽度时，改为将图片逐渐缩小
-							if (index >= IMG_TO_MAX_CHANGE_WIDTH_ARRY.length) {
-								// 清理循环定时器
-								window.clearInterval(INTERVAL_ID);
-								// 图片变小
-								toMin();
-								break;
-							}
-						} while (IMG_TO_MAX_CHANGE_WIDTH_ARRY[index] == null)
+						if (GLOBE_TO_MAX_CHANGE_WIDTH_ARRY[index] != null) {
+							// 修改球体宽度
+							GLOBE_OBJ.style.transform = "scale("+ GLOBE_TO_MAX_CHANGE_WIDTH_ARRY[index] +")";
+						} else {
+							// 如果没有记录球体宽度，就继续循环到找到为止。
+							do {
+								index++;
+								// 当前球体宽度大于球体最大宽度时，改为将球体逐渐缩小
+								if (index >= GLOBE_TO_MAX_CHANGE_WIDTH_ARRY.length) {
+									// 清理循环定时器
+									window.clearInterval(INTERVAL_ID);
+									// 球体变小
+									globeToMin();
+									break;
+								}
+							} while (GLOBE_TO_MAX_CHANGE_WIDTH_ARRY[index] == null)
+						}
 					}
+					index++;
 				}
-				index++;
-			}, CHANGE_TIME_NUM); // 每次修改间隔时间
+			}, GLOBE_CHANGE_TIME_INTERVAL); // 每次修改间隔时间
 		};
 		
 		/**
-		 * 图片变小
+		 * 球体变小
 		 */
-		function toMin() {
-			var index = IMG_TO_MAX_CHANGE_WIDTH_ARRY.length - 1;
+		function globeToMin() {
+			var index = GLOBE_TO_MAX_CHANGE_WIDTH_ARRY.length - 1;
 			INTERVAL_ID = window.setInterval(function () {
-				if (index < 0) {
-					// 清理循环定时器
-					window.clearInterval(INTERVAL_ID);
-					// 图片变大
-					toMax();
-				} else {
-					if (IMG_TO_MAX_CHANGE_WIDTH_ARRY[index] != null) {
-						// 修改图片宽度
-						IMG_OBJ.style.transform = "scale("+ IMG_TO_MAX_CHANGE_WIDTH_ARRY[index] +")";
+				// 当前没有暂停
+				if (IS_STOP == false) {
+					if (index < 0) {
+						// 清理循环定时器
+						window.clearInterval(INTERVAL_ID);
+						// 球体变大
+						globeToMax();
 					} else {
-						do {
-							index--;
-							if (index < 0) {
-								// 清理循环定时器
-								window.clearInterval(INTERVAL_ID);
-								// 图片变大
-								toMax();
-								break;
-							}
-						} while (IMG_TO_MAX_CHANGE_WIDTH_ARRY[index] == null)
+						if (GLOBE_TO_MAX_CHANGE_WIDTH_ARRY[index] != null) {
+							// 修改球体宽度
+							GLOBE_OBJ.style.transform = "scale("+ GLOBE_TO_MAX_CHANGE_WIDTH_ARRY[index] +")";
+						} else {
+							// 如果没有记录球体宽度，就继续循环到找到为止。
+							do {
+								index--;
+								if (index < 0) {
+									// 清理循环定时器
+									window.clearInterval(INTERVAL_ID);
+									// 球体变大
+									globeToMax();
+									break;
+								}
+							} while (GLOBE_TO_MAX_CHANGE_WIDTH_ARRY[index] == null)
+						}
 					}
+					index--;
 				}
-				index--;
-			}, CHANGE_TIME_NUM); // 每次修改间隔时间
+			}, GLOBE_CHANGE_TIME_INTERVAL); // 每次修改间隔时间.
+		};
+		
+		/**
+		 * 切换球体状态
+		 */
+		function switchGlobeStatus() {
+			if (IS_STOP) {
+				IS_STOP = false;
+			} else {
+				IS_STOP = true;
+			}
 		};
 	</script>
 </html>
